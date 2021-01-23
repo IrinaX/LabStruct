@@ -28,11 +28,13 @@ int getCorrectValue(int limit);
 
 int getMenuVariant(int count);
 
+int getAge(int maxAge);
+
 unsigned int getNumberOfMatches(int age, person *notebook, unsigned int amountOfPeople);
 
 void findPeople(int age, person *notebook, unsigned int amountOfPeople, person *foundPeople);
 
-int getAge(int maxAge);
+void sortBySurname(unsigned int amountOfPeople, person *notebook);
 
 int main() {
     unsigned int amountOfPeople = getAmountOfPeople();
@@ -40,13 +42,15 @@ int main() {
     getPeopleData(amountOfPeople, notebook);
     printNotebook(amountOfPeople, notebook);
     int variant = 0;
-    while (variant != 3) {
+    while (variant != 4) {
         printMenu();
-        variant = getMenuVariant(3);
+        variant = getMenuVariant(4);
         switch (variant) {
-            case 1:
-                printf("sort list");
+            case 1: {
+                sortBySurname(amountOfPeople, notebook);
+                printNotebook(amountOfPeople, notebook);
                 break;
+            }
             case 2: {
                 int age = getAge(100);
                 unsigned int numberOfMatches = getNumberOfMatches(age, notebook, amountOfPeople);
@@ -57,16 +61,17 @@ int main() {
                 }
                 break;
             }
-            case 3:
+            case 3: {
+                printNotebook(amountOfPeople, notebook);
+                break;
+            }
+            case 4:
                 printf("exit");
                 break;
             default:
                 break;
         }
     }
-
-
-
 //    system("pause");
     return 0;
 }
@@ -129,7 +134,8 @@ void printMenu() {
     printf("\nWhat do you want to do?\n");
     printf("1. Sort list\n");
     printf("2. Searching people by age\n");
-    printf("3. Exit\n");
+    printf("3. Show notebook\n");
+    printf("4. Exit\n");
     printf(">");
 }
 
@@ -178,6 +184,20 @@ unsigned int getNumberOfMatches(int age, person *notebook, unsigned int amountOf
         return 0;
     } else {
         return numberOfMatches;
+    }
+}
+
+void sortBySurname(unsigned int amountOfPeople, person *notebook) {
+    for (int i = (int) amountOfPeople-1; i > 0; --i) {
+        for (int j = 0; j < i; ++j) {
+            if (strcmp(notebook[j].surname, notebook[j + 1].surname) > 0) {
+//                printf("%d) surname: %s more then %d) surname: %s\n", j, notebook[j].surname, j + 1,
+//                       notebook[j + 1].surname);
+                person savedPerson = notebook[j];
+                notebook[j] = notebook[j + 1];
+                notebook[j + 1] = savedPerson;
+            }
+        }
     }
 }
 
