@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <limits.h>
 
 /*
  * Implement a notebook that stores personal information (last name, first name, age, gender, phone number).
@@ -24,7 +25,9 @@ void printNotebook(unsigned int amountOfPeople, person *notebook);
 
 void printMenu();
 
-int getCorrectValue(int limit);
+int getCorrectIntValue(int limit);
+
+void getCorrectStringValue(char *string, int length);
 
 int getMenuVariant(int maxVariant);
 
@@ -92,7 +95,7 @@ void getPeopleData(unsigned int amountOfPeople, person *notebook) {
         scanf("%s", surname);
 
         printf("%d person. Input age:", numeration);
-        scanf("%d", &age);
+        age = getCorrectIntValue(150);
 
         printf("%d person. Input gender:", numeration);
         scanf("%s", gender);
@@ -115,9 +118,8 @@ person addPerson(char *name, char *surname, int age, char *gender, char *telNumb
 }
 
 unsigned int getAmountOfPeople() {
-    unsigned int amountOfPeople;
     printf("Input amount of people: ");
-    scanf("%d", &amountOfPeople);
+    unsigned int amountOfPeople = (unsigned int) getCorrectIntValue(INT_MAX);
     return amountOfPeople;
 }
 
@@ -139,7 +141,8 @@ void printMenu() {
     printf(">");
 }
 
-int getCorrectValue(int limit) {
+int
+getCorrectIntValue(int limit) { //todo: fix bug with input values. Input: 5f, output is 5. But 5f is incorrect input.
     int result;
     char string[100];// строка для считывания введённых данных
     scanf("%s", string); // считываем строку
@@ -151,14 +154,36 @@ int getCorrectValue(int limit) {
     return result;
 }
 
+void getCorrectStringValue(char *string, int length) { //array, length of array
+    int booleanVar = 0;
+    while (1) {
+        scanf("%s", string);
+        for (int i = 0; i < length; i++) {
+            // проверка каждого символа, если не буква(строчная или заглавная), то проверка на '\0'
+            if (!(string[i] >= 'a' && string[i] <= 'z' || string[i] >= 'A' && string[i] <= 'Z')) {
+                if (string[i] == '\0') {
+                    booleanVar = 1;
+                } else {
+                    printf("Incorrect input. Try again: ");
+                    booleanVar = 0;
+                }
+                break;
+            }
+        }
+        if (booleanVar == 1) {
+            break;
+        }
+    }
+}
+
 int getMenuVariant(int maxVariant) {
-    int variant = getCorrectValue(maxVariant);
+    int variant = getCorrectIntValue(maxVariant);
     return variant;
 }
 
 int getAge(int maxAge) {
     printf("Enter age: ");
-    int age = getCorrectValue(maxAge);
+    int age = getCorrectIntValue(maxAge);
     return age;
 }
 
@@ -198,6 +223,7 @@ void sortBySurname(unsigned int amountOfPeople, person *notebook) {
         }
     }
 }
+
 
 
 
