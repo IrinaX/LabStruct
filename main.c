@@ -26,13 +26,13 @@ void printMenu();
 
 int getCorrectValue(int limit);
 
-int getMenuVariant(int count);
+int getMenuVariant(int maxVariant);
 
 int getAge(int maxAge);
 
 unsigned int getNumberOfMatches(int age, person *notebook, unsigned int amountOfPeople);
 
-void findPeople(int age, person *notebook, unsigned int amountOfPeople, person *foundPeople);
+void findPeopleByAge(int age, person *notebook, unsigned int amountOfPeople, person *foundPeople);
 
 void sortBySurname(unsigned int amountOfPeople, person *notebook);
 
@@ -55,8 +55,8 @@ int main() {
                 int age = getAge(100);
                 unsigned int numberOfMatches = getNumberOfMatches(age, notebook, amountOfPeople);
                 if (numberOfMatches != 0) {
-                    person foundPeople[numberOfMatches]; //you need to determine the size of the array before filling it, dynamic memory allocation of 10 lab
-                    findPeople(age, notebook, amountOfPeople, foundPeople);
+                    person foundPeople[numberOfMatches];
+                    findPeopleByAge(age, notebook, amountOfPeople, foundPeople);
                     printNotebook(numberOfMatches, foundPeople);
                 }
                 break;
@@ -151,8 +151,8 @@ int getCorrectValue(int limit) {
     return result;
 }
 
-int getMenuVariant(int count) {
-    int variant = getCorrectValue(count);
+int getMenuVariant(int maxVariant) {
+    int variant = getCorrectValue(maxVariant);
     return variant;
 }
 
@@ -162,7 +162,7 @@ int getAge(int maxAge) {
     return age;
 }
 
-void findPeople(int age, person *notebook, unsigned int amountOfPeople, person *foundPeople) {
+void findPeopleByAge(int age, person *notebook, unsigned int amountOfPeople, person *foundPeople) {
     int j = 0;
     for (int i = 0; i < amountOfPeople; ++i) {
         if (notebook[i].age == age) {
@@ -188,11 +188,9 @@ unsigned int getNumberOfMatches(int age, person *notebook, unsigned int amountOf
 }
 
 void sortBySurname(unsigned int amountOfPeople, person *notebook) {
-    for (int i = (int) amountOfPeople-1; i > 0; --i) {
+    for (int i = (int) amountOfPeople - 1; i > 0; --i) {
         for (int j = 0; j < i; ++j) {
             if (strcmp(notebook[j].surname, notebook[j + 1].surname) > 0) {
-//                printf("%d) surname: %s more then %d) surname: %s\n", j, notebook[j].surname, j + 1,
-//                       notebook[j + 1].surname);
                 person savedPerson = notebook[j];
                 notebook[j] = notebook[j + 1];
                 notebook[j + 1] = savedPerson;
