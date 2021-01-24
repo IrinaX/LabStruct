@@ -1,10 +1,9 @@
 #include <stdio.h>
 #include <string.h>
-#include <limits.h>
 
 /*
  * Implement a notebook that stores personal information (last name, first name, age, gender, phone number).
- * Provide sorting of records by last name and search by age.
+ * Provide sorting of records by last name and search by age. Max people = 20.
  */
 
 typedef struct {
@@ -15,9 +14,11 @@ typedef struct {
     char telNumber[12];
 } person;
 
-person addPerson(char name[], char surname[], int age, char gender[], char telNumber[]);
+person getNewPerson(char name[], char surname[], int age, char gender[], char telNumber[]);
 
-unsigned int getAmountOfPeople();
+unsigned int getAmountOfPeople(int maxVal);
+
+int getInputData(char *name, char *surname, int age, char *gender, char *telNumber);
 
 void getPeopleData(unsigned int amountOfPeople, person *notebook);
 
@@ -31,33 +32,36 @@ int getCorrectIntValue(int maxValue);
 
 void getCorrectStringValue(char *string, int length);
 
-int getMenuVariant(int maxVariant);
-
-int getAge(int maxAge);
-
 unsigned int getNumberOfMatches(int age, person *notebook, unsigned int amountOfPeople);
 
 void findPeopleByAge(int age, person *notebook, unsigned int amountOfPeople, person *foundPeople);
 
 void sortBySurname(unsigned int amountOfPeople, person *notebook);
 
+void showPerson(person *notebook, int number);
+
+unsigned int addNewPerson(unsigned int amountOfPeople, person *notebook);
+
 int main() {
-    unsigned int amountOfPeople = getAmountOfPeople();
-    person notebook[amountOfPeople];
+    int maxAmountOfPeople = 20;
+    person notebook[maxAmountOfPeople];
+    unsigned int amountOfPeople = getAmountOfPeople(maxAmountOfPeople);
     getPeopleData(amountOfPeople, notebook);
     printNotebook(amountOfPeople, notebook);
     int variant = 0;
-    while (variant != 5) {
+    int maxVariant = 7;
+    while (variant != maxVariant) {
         printMenu();
-        variant = getMenuVariant(5);
+        variant = getCorrectIntValue(maxVariant);
         switch (variant) {
-            case 1: {
+            case 1: { //Sort list by surname
                 sortBySurname(amountOfPeople, notebook);
                 printNotebook(amountOfPeople, notebook);
                 break;
             }
-            case 2: {
-                int age = getAge(150);
+            case 2: { //Searching people by age
+                printf("Enter age: ");
+                int age = getCorrectIntValue(150);
                 unsigned int numberOfMatches = getNumberOfMatches(age, notebook, amountOfPeople);
                 if (numberOfMatches != 0) {
                     person foundPeople[numberOfMatches];
@@ -66,22 +70,59 @@ int main() {
                 }
                 break;
             }
-            case 3: {
+            case 3: { //Show notebook
                 printNotebook(amountOfPeople, notebook);
                 break;
             }
-            case 4:
-                printf("show person's info");
+            case 4: { //Show person info by his number in notebook
+                printf("Enter the person's number: ");
+                int number = getCorrectIntValue((int) amountOfPeople);
+                showPerson(notebook, number);
                 break;
-            case 5:
-                printf("exit");
+            }
+            case 5: { //Add person
+                if (amountOfPeople < maxAmountOfPeople) {
+                    amountOfPeople = addNewPerson(amountOfPeople, notebook);
+                } else {
+                    printf("\nNotebook is full.\n");
+                }
+                printNotebook(amountOfPeople, notebook);
                 break;
+            }
+            case 6: { //todo: Remove person
+                printf("Enter the person's number: ");
+                int number = getCorrectIntValue((int) amountOfPeople);
+                printf("%d", number);
+                break;
+            }
+            case 7: {
+                printf("Exit...");
+                break;
+            }
             default:
                 break;
         }
     }
 //    system("pause");
     return 0;
+}
+
+int getInputData(char *name, char *surname, int age, char *gender, char *telNumber) {
+    printf("Input name:");
+    getCorrectStringValue(name, 15);
+
+    printf("Input surname:");
+    getCorrectStringValue(surname, 20);
+
+    printf("Input age:");
+    age = getCorrectIntValue(150);
+
+    printf("Input gender:");
+    getCorrectStringValue(gender, 7);
+
+    printf("Input telNumber:");
+    getCorrectValue(telNumber, 12, 0);
+    return age;
 }
 
 void getPeopleData(unsigned int amountOfPeople, person *notebook) {
@@ -93,39 +134,26 @@ void getPeopleData(unsigned int amountOfPeople, person *notebook) {
     int numeration;
     for (int i = 0; i < amountOfPeople; ++i) {
         numeration = i + 1;
-        printf("%d person. Input name:", numeration);
-        getCorrectStringValue(name, 15);
-
-        printf("%d person. Input surname:", numeration);
-        getCorrectStringValue(surname, 20);
-
-        printf("%d person. Input age:", numeration);
-        age = getCorrectIntValue(150);
-
-        printf("%d person. Input gender:", numeration);
-        getCorrectStringValue(gender, 7);
-
-        printf("%d person. Input telNumber:", numeration);
-        getCorrectValue(telNumber, 12, 0);
-
+        printf("%d person.\n", numeration);
+        age = getInputData(name, surname, age, gender, telNumber);
         printf("\n");
-        notebook[i] = addPerson(name, surname, age, gender, telNumber);
+        notebook[i] = getNewPerson(name, surname, age, gender, telNumber);
     }
 }
 
-person addPerson(char *name, char *surname, int age, char *gender, char *telNumber) {
-    person addedPerson;
-    strcpy(addedPerson.name, name);
-    strcpy(addedPerson.surname, surname);
-    addedPerson.age = age;
-    strcpy(addedPerson.gender, gender);
-    strcpy(addedPerson.telNumber, telNumber);
-    return addedPerson;
+person getNewPerson(char *name, char *surname, int age, char *gender, char *telNumber) {
+    person newPerson;
+    strcpy(newPerson.name, name);
+    strcpy(newPerson.surname, surname);
+    newPerson.age = age;
+    strcpy(newPerson.gender, gender);
+    strcpy(newPerson.telNumber, telNumber);
+    return newPerson;
 }
 
-unsigned int getAmountOfPeople() {
+unsigned int getAmountOfPeople(int maxVal) {
     printf("Input amount of people: ");
-    unsigned int amountOfPeople = (unsigned int) getCorrectIntValue(INT_MAX);
+    unsigned int amountOfPeople = (unsigned int) getCorrectIntValue(maxVal);//max amountOfPeople = 20 (task)
     return amountOfPeople;
 }
 
@@ -144,7 +172,9 @@ void printMenu() {
     printf("2. Searching people by age\n");
     printf("3. Show notebook\n");
     printf("4. Show person info by his number in notebook\n");
-    printf("5. Exit\n");
+    printf("5. Add person\n");
+    printf("6. Remove person\n");
+    printf("7. Exit\n");
     printf(">");
 }
 
@@ -212,17 +242,6 @@ void getCorrectStringValue(char *string, int length) { //array, length of array
     }
 }
 
-int getMenuVariant(int maxVariant) {
-    int variant = getCorrectIntValue(maxVariant);
-    return variant;
-}
-
-int getAge(int maxAge) {
-    printf("Enter age: ");
-    int age = getCorrectIntValue(maxAge);
-    return age;
-}
-
 void findPeopleByAge(int age, person *notebook, unsigned int amountOfPeople, person *foundPeople) {
     int j = 0;
     for (int i = 0; i < amountOfPeople; ++i) {
@@ -260,7 +279,26 @@ void sortBySurname(unsigned int amountOfPeople, person *notebook) {
     }
 }
 
+void showPerson(person *notebook, int number) {
+    printf("%d) name: %s \tsurname: %s \tage: %d \tgender: %s \ttelNumber: %s\n", number, notebook[number - 1].name,
+           notebook[number - 1].surname, notebook[number - 1].age, notebook[number - 1].gender,
+           notebook[number - 1].telNumber);
+}
 
+unsigned int addNewPerson(unsigned int amountOfPeople, person *notebook) {
+    char name[15];
+    char surname[20];
+    int age = 0;
+    char gender[7];
+    char telNumber[12];
+    age = getInputData(name, surname, age, gender, telNumber);
+    printf("name: %s \tsurname: %s \tage: %d \tgender: %s \ttelNumber: %s\n", name,
+           surname, age, gender, telNumber);
+    printf("\n");
+    notebook[amountOfPeople] = getNewPerson(name, surname, age, gender, telNumber);
+    ++amountOfPeople;
+    return amountOfPeople;
+}
 
 
 
