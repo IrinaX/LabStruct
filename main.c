@@ -42,6 +42,8 @@ void showPerson(person *notebook, int number);
 
 unsigned int addNewPerson(unsigned int amountOfPeople, person *notebook);
 
+unsigned int removePerson(unsigned int amountOfPeople, person *notebook, int index);
+
 int main() {
     int maxAmountOfPeople = 20;
     person notebook[maxAmountOfPeople];
@@ -64,6 +66,7 @@ int main() {
                 int age = getCorrectIntValue(150);
                 unsigned int numberOfMatches = getNumberOfMatches(age, notebook, amountOfPeople);
                 if (numberOfMatches != 0) {
+                    printf("Search result:\n");
                     person foundPeople[numberOfMatches];
                     findPeopleByAge(age, notebook, amountOfPeople, foundPeople);
                     printNotebook(numberOfMatches, foundPeople);
@@ -71,6 +74,7 @@ int main() {
                 break;
             }
             case 3: { //Show notebook
+                printf("Notebook:\n");
                 printNotebook(amountOfPeople, notebook);
                 break;
             }
@@ -86,13 +90,22 @@ int main() {
                 } else {
                     printf("\nNotebook is full.\n");
                 }
+                printf("\nUpdated notebook:\n");
                 printNotebook(amountOfPeople, notebook);
                 break;
             }
             case 6: { //todo: Remove person
-                printf("Enter the person's number: ");
-                int number = getCorrectIntValue((int) amountOfPeople);
-                printf("%d", number);
+                if (amountOfPeople > 0) {
+                    printf("Enter the person's number: ");
+                    int index = getCorrectIntValue((int) amountOfPeople);
+                    --index;
+                    amountOfPeople = removePerson(amountOfPeople, notebook, index);
+                    printf("\nPerson was removed. Updated notebook:\n");
+                    printNotebook(amountOfPeople, notebook);
+                } else {
+                    printf("\nNotebook is empty.\n");
+                }
+
                 break;
             }
             case 7: {
@@ -158,11 +171,15 @@ unsigned int getAmountOfPeople(int maxVal) {
 }
 
 void printNotebook(unsigned int amountOfPeople, person *notebook) {
-    int numeration;
-    for (int i = 0; i < amountOfPeople; ++i) {
-        numeration = i + 1;
-        printf("%d) name: %s \tsurname: %s \tage: %d \tgender: %s \ttelNumber: %s\n", numeration, notebook[i].name,
-               notebook[i].surname, notebook[i].age, notebook[i].gender, notebook[i].telNumber);
+    if (amountOfPeople > 0) {
+        int numeration;
+        for (int i = 0; i < amountOfPeople; ++i) {
+            numeration = i + 1;
+            printf("%d) name: %s \tsurname: %s \tage: %d \tgender: %s \ttelNumber: %s\n", numeration, notebook[i].name,
+                   notebook[i].surname, notebook[i].age, notebook[i].gender, notebook[i].telNumber);
+        }
+    } else {
+        printf("\nNotebook is empty.\n");
     }
 }
 
@@ -294,9 +311,18 @@ unsigned int addNewPerson(unsigned int amountOfPeople, person *notebook) {
     age = getInputData(name, surname, age, gender, telNumber);
     printf("name: %s \tsurname: %s \tage: %d \tgender: %s \ttelNumber: %s\n", name,
            surname, age, gender, telNumber);
-    printf("\n");
     notebook[amountOfPeople] = getNewPerson(name, surname, age, gender, telNumber);
     ++amountOfPeople;
+    return amountOfPeople;
+}
+
+unsigned int removePerson(unsigned int amountOfPeople, person *notebook, int index) {
+    --amountOfPeople;
+    for (int i = 0; i < amountOfPeople; i++) {
+        if (i >= index) {
+            notebook[i] = notebook[i + 1];
+        }
+    }
     return amountOfPeople;
 }
 
