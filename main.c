@@ -25,7 +25,9 @@ void printNotebook(unsigned int amountOfPeople, person *notebook);
 
 void printMenu();
 
-int getCorrectIntValue(int limit);
+int getCorrectValue(char *string, int length, int switcher);
+
+int getCorrectIntValue(int maxValue);
 
 void getCorrectStringValue(char *string, int length);
 
@@ -45,9 +47,9 @@ int main() {
     getPeopleData(amountOfPeople, notebook);
     printNotebook(amountOfPeople, notebook);
     int variant = 0;
-    while (variant != 4) {
+    while (variant != 5) {
         printMenu();
-        variant = getMenuVariant(4);
+        variant = getMenuVariant(5);
         switch (variant) {
             case 1: {
                 sortBySurname(amountOfPeople, notebook);
@@ -55,7 +57,7 @@ int main() {
                 break;
             }
             case 2: {
-                int age = getAge(100);
+                int age = getAge(150);
                 unsigned int numberOfMatches = getNumberOfMatches(age, notebook, amountOfPeople);
                 if (numberOfMatches != 0) {
                     person foundPeople[numberOfMatches];
@@ -69,6 +71,9 @@ int main() {
                 break;
             }
             case 4:
+                printf("show person's info");
+                break;
+            case 5:
                 printf("exit");
                 break;
             default:
@@ -89,19 +94,20 @@ void getPeopleData(unsigned int amountOfPeople, person *notebook) {
     for (int i = 0; i < amountOfPeople; ++i) {
         numeration = i + 1;
         printf("%d person. Input name:", numeration);
-        scanf("%s", name);
+        getCorrectStringValue(name, 15);
 
         printf("%d person. Input surname:", numeration);
-        scanf("%s", surname);
+        getCorrectStringValue(surname, 20);
 
         printf("%d person. Input age:", numeration);
         age = getCorrectIntValue(150);
 
         printf("%d person. Input gender:", numeration);
-        scanf("%s", gender);
+        getCorrectStringValue(gender, 7);
 
         printf("%d person. Input telNumber:", numeration);
-        scanf("%s", telNumber);
+        getCorrectValue(telNumber, 12, 0);
+
         printf("\n");
         notebook[i] = addPerson(name, surname, age, gender, telNumber);
     }
@@ -134,24 +140,54 @@ void printNotebook(unsigned int amountOfPeople, person *notebook) {
 
 void printMenu() {
     printf("\nWhat do you want to do?\n");
-    printf("1. Sort list\n");
+    printf("1. Sort list by surname\n");
     printf("2. Searching people by age\n");
     printf("3. Show notebook\n");
-    printf("4. Exit\n");
+    printf("4. Show person info by his number in notebook\n");
+    printf("5. Exit\n");
     printf(">");
 }
 
-int
-getCorrectIntValue(int limit) { //todo: fix bug with input values. Input: 5f, output is 5. But 5f is incorrect input.
-    int result;
-    char string[100];// строка для считывания введённых данных
-    scanf("%s", string); // считываем строку
+int getCorrectIntValue(int maxValue) {
+    int result = 0;
+    char string[100];
     // пока ввод некорректен, сообщаем об этом и просим повторить его
-    while (sscanf(string, "%d", &result) != 1 || result < 1 || result > limit) {
-        printf("Incorrect input. Try again: "); // выводим сообщение об ошибке
-        scanf("%s", string); // считываем строку повторно
+    while (result < 1 || result > maxValue) {
+        result = getCorrectValue(string, 100, 1);
+        if (result < 1 || result > maxValue) {
+            printf("Incorrect input. Try again: ");
+        }
     }
     return result;
+}
+
+int getCorrectValue(char *string, int length, int switcher) { //array, length of array
+    int booleanVar = 0;
+    int intResult;
+    while (1) {
+        scanf("%s", string);
+        for (int i = 0; i < length; i++) {
+            // проверка каждого символа, если не число, то проверка на '\0'
+            if (!(string[i] >= '0' && string[i] <= '9')) {
+                if (string[i] == '\0') {
+                    booleanVar = 1;
+                } else {
+                    printf("Incorrect input. Try again: ");
+                    booleanVar = 0;
+                }
+                break;
+            }
+        }
+        if (booleanVar == 1) {
+            break;
+        }
+    }
+    if (switcher == 1) {
+        sscanf(string, "%d", &intResult);
+        return intResult;
+    } else {
+        return booleanVar;
+    }
 }
 
 void getCorrectStringValue(char *string, int length) { //array, length of array
@@ -205,7 +241,7 @@ unsigned int getNumberOfMatches(int age, person *notebook, unsigned int amountOf
         }
     }
     if (numberOfMatches == 0) {
-        printf("No matches found.");
+        printf("\nNo matches found.\n");
         return 0;
     } else {
         return numberOfMatches;
