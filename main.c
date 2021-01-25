@@ -44,47 +44,77 @@ unsigned int addNewPerson(unsigned int amountOfPeople, person *notebook);
 
 unsigned int removePerson(unsigned int amountOfPeople, person *notebook, int index);
 
+void saveNotebook(unsigned int amountOfPeople, person *notebook, char *fileName);
+
+void getCorrectFileName(char *fileName);
+
+unsigned int loadNotebook(person *notebook, char *fileName);
+
+void deleteFile(char *fileName);
+
+unsigned int removeAllInfo(person *notebook, unsigned int amountOfPeople);
+
 int main() {
     int maxAmountOfPeople = 20;
     person notebook[maxAmountOfPeople];
-    unsigned int amountOfPeople = getAmountOfPeople(maxAmountOfPeople);
-    getPeopleData(amountOfPeople, notebook);
-    printNotebook(amountOfPeople, notebook);
+    unsigned int amountOfPeople = 0;
     int variant = 0;
-    int maxVariant = 7;
+    int maxVariant = 12;
     while (variant != maxVariant) {
         printMenu();
         variant = getCorrectIntValue(maxVariant);
         switch (variant) {
-            case 1: { //Sort list by surname
-                sortBySurname(amountOfPeople, notebook);
+            case 1: { //Create new notebook
+                amountOfPeople = getAmountOfPeople(maxAmountOfPeople);
+                getPeopleData(amountOfPeople, notebook);
                 printNotebook(amountOfPeople, notebook);
                 break;
             }
-            case 2: { //Searching people by age
-                printf("Enter age: ");
-                int age = getCorrectIntValue(150);
-                unsigned int numberOfMatches = getNumberOfMatches(age, notebook, amountOfPeople);
-                if (numberOfMatches != 0) {
-                    printf("Search result:\n");
-                    person foundPeople[numberOfMatches];
-                    findPeopleByAge(age, notebook, amountOfPeople, foundPeople);
-                    printNotebook(numberOfMatches, foundPeople);
+            case 2: { //Sort list by surname
+                if (amountOfPeople > 0) {
+                    sortBySurname(amountOfPeople, notebook);
+                    printNotebook(amountOfPeople, notebook);
+                } else {
+                    printf("\nNotebook is empty.\n");
                 }
                 break;
             }
-            case 3: { //Show notebook
-                printf("Notebook:\n");
-                printNotebook(amountOfPeople, notebook);
+            case 3: { //Searching people by age
+                if (amountOfPeople > 0) {
+                    printf("Enter age: ");
+                    int age = getCorrectIntValue(150);
+                    unsigned int numberOfMatches = getNumberOfMatches(age, notebook, amountOfPeople);
+                    if (numberOfMatches != 0) {
+                        printf("Search result:\n");
+                        person foundPeople[numberOfMatches];
+                        findPeopleByAge(age, notebook, amountOfPeople, foundPeople);
+                        printNotebook(numberOfMatches, foundPeople);
+                    }
+                } else {
+                    printf("\nNotebook is empty.\n");
+                }
                 break;
             }
-            case 4: { //Show person info by his number in notebook
-                printf("Enter the person's number: ");
-                int number = getCorrectIntValue((int) amountOfPeople);
-                showPerson(notebook, number);
+            case 4: { //Show notebook
+                if (amountOfPeople > 0) {
+                    printf("Notebook:\n");
+                    printNotebook(amountOfPeople, notebook);
+                } else {
+                    printf("\nNotebook is empty.\n");
+                }
                 break;
             }
-            case 5: { //Add person
+            case 5: { //Show person info by his number in notebook
+                if (amountOfPeople > 0) {
+                    printf("Enter the person's number: ");
+                    int number = getCorrectIntValue((int) amountOfPeople);
+                    showPerson(notebook, number);
+                } else {
+                    printf("\nNotebook is empty.\n");
+                }
+                break;
+            }
+            case 6: { //Add person
                 if (amountOfPeople < maxAmountOfPeople) {
                     amountOfPeople = addNewPerson(amountOfPeople, notebook);
                 } else {
@@ -94,21 +124,54 @@ int main() {
                 printNotebook(amountOfPeople, notebook);
                 break;
             }
-            case 6: { //todo: Remove person
+            case 7: { //Remove person
                 if (amountOfPeople > 0) {
                     printf("Enter the person's number: ");
                     int index = getCorrectIntValue((int) amountOfPeople);
                     --index;
                     amountOfPeople = removePerson(amountOfPeople, notebook, index);
-                    printf("\nPerson was removed. Updated notebook:\n");
-                    printNotebook(amountOfPeople, notebook);
+                    if (amountOfPeople > 0) {
+                        printf("\nPerson was removed. Updated notebook:\n");
+                        printNotebook(amountOfPeople, notebook);
+                    } else {
+                        printf("\nNotebook is empty.\n");
+                    }
                 } else {
                     printf("\nNotebook is empty.\n");
                 }
-
                 break;
             }
-            case 7: {
+            case 8: {
+                if (amountOfPeople > 0) {
+                    char fileName[20];
+                    getCorrectFileName(fileName);
+                    saveNotebook(amountOfPeople, notebook, fileName);
+                } else {
+                    printf("\nNo data to save.\n");
+                }
+                break;
+            }
+            case 9: {
+                char fileName[20];
+                getCorrectFileName(fileName);
+                amountOfPeople = loadNotebook(notebook, fileName);
+                break;
+            }
+            case 10: {
+                char fileName[20];
+                getCorrectFileName(fileName);
+                deleteFile(fileName);
+                break;
+            }
+            case 11: {
+                if (amountOfPeople > 0) {
+                    amountOfPeople = removeAllInfo(notebook, amountOfPeople);
+                } else {
+                    printf("\nNotebook is empty.\n");
+                }
+                break;
+            }
+            case 12: {
                 printf("Exit...");
                 break;
             }
@@ -171,27 +234,28 @@ unsigned int getAmountOfPeople(int maxVal) {
 }
 
 void printNotebook(unsigned int amountOfPeople, person *notebook) {
-    if (amountOfPeople > 0) {
-        int numeration;
-        for (int i = 0; i < amountOfPeople; ++i) {
-            numeration = i + 1;
-            printf("%d) name: %s \tsurname: %s \tage: %d \tgender: %s \ttelNumber: %s\n", numeration, notebook[i].name,
-                   notebook[i].surname, notebook[i].age, notebook[i].gender, notebook[i].telNumber);
-        }
-    } else {
-        printf("\nNotebook is empty.\n");
+    int numeration;
+    for (int i = 0; i < amountOfPeople; ++i) {
+        numeration = i + 1;
+        printf("%d) name: %s \tsurname: %s \tage: %d \tgender: %s \ttelNumber: %s\n", numeration, notebook[i].name,
+               notebook[i].surname, notebook[i].age, notebook[i].gender, notebook[i].telNumber);
     }
 }
 
 void printMenu() {
     printf("\nWhat do you want to do?\n");
-    printf("1. Sort list by surname\n");
-    printf("2. Searching people by age\n");
-    printf("3. Show notebook\n");
-    printf("4. Show person info by his number in notebook\n");
-    printf("5. Add person\n");
-    printf("6. Remove person\n");
-    printf("7. Exit\n");
+    printf("1. Create new notebook\n");
+    printf("2. Sort list by surname\n");
+    printf("3. Searching people by age\n");
+    printf("4. Show notebook\n");
+    printf("5. Show person info by his number in notebook\n");
+    printf("6. Add person\n");
+    printf("7. Remove person\n");
+    printf("8. Save notebook\n");
+    printf("9. Load notebook from file\n");
+    printf("10. Delete file\n");
+    printf("11. Clear all data\n");
+    printf("12. Exit\n");
     printf(">");
 }
 
@@ -325,6 +389,79 @@ unsigned int removePerson(unsigned int amountOfPeople, person *notebook, int ind
     }
     return amountOfPeople;
 }
+
+void saveNotebook(unsigned int amountOfPeople, person *notebook, char *fileName) {
+    FILE *file = fopen(fileName, "w");
+    if (file != NULL) {
+        for (int i = 0; i < amountOfPeople; i++) {
+            fprintf(file, "%s\t%s\t%d\t%s\t%s\n",
+                    notebook[i].name,
+                    notebook[i].surname,
+                    notebook[i].age,
+                    notebook[i].gender,
+                    notebook[i].telNumber);
+        }
+        printf("\nNotebook was saved in %s\n", fileName);
+        fclose(file);
+    } else {
+        printf("\nSomething went wrong. Try again.\n");
+    }
+}
+
+void getCorrectFileName(char *fileName) {
+    printf("Enter file name: ");
+    scanf("%s", fileName);
+    if (strstr(fileName, ".txt") == NULL) {// проверка на вхождение ".txt" в введеную строку
+        strncat(fileName, ".txt", 4); // добавляем ".txt"
+    }
+}
+
+unsigned int loadNotebook(person *notebook, char *fileName) {
+    char name[15];
+    char surname[20];
+    int age;
+    char gender[7];
+    char telNumber[12];
+    unsigned int amountOfPeople = 0;
+    FILE *file = fopen(fileName, "r");
+    if (file != NULL) {
+        while (1) {
+            if (fscanf(file, "%s%s%d%s%s", name, surname, &age, gender, telNumber) == EOF) {
+                printf("\nFile uploaded successfully.\n");
+                break;
+            } else {
+                notebook[amountOfPeople] = getNewPerson(name, surname, age, gender, telNumber); //todo: check all parameters for correct value!!!
+                ++amountOfPeople;
+            }
+        }
+        fclose(file);
+        return amountOfPeople;
+    } else {
+        printf("\nSomething went wrong. Try again.\n");
+        return -1;
+    }
+}
+
+void deleteFile(char *fileName) {
+    if (-1 == remove(fileName)) {
+        printf("\nSomething went wrong. Try again.\n");
+    } else {
+        printf("\nFile was deleted successfully.\n");
+    }
+}
+
+unsigned int removeAllInfo(person *notebook, unsigned int amountOfPeople) {
+    int length = (int) amountOfPeople;
+    while (length != 0) {
+        for (int i = 0; i < length; i++) {
+            notebook[i] = notebook[i + 1];
+        }
+        --length;
+    }
+    printf("\nAll data were deleted successfully.\n");
+    return 0;
+}
+
 
 
 
