@@ -50,6 +50,10 @@ void getCorrectFileName(char *fileName);
 
 unsigned int loadNotebook(person *notebook, char *fileName);
 
+int checkInputString(const char *string, int length, char *errorMessage);
+
+int checkInputString4Numbers(const char *string, int length, char *errorMessage);
+
 void deleteFile(char *fileName);
 
 unsigned int removeAllInfo(person *notebook, unsigned int amountOfPeople);
@@ -272,26 +276,12 @@ int getCorrectIntValue(int maxValue) {
     return result;
 }
 
-int getCorrectValue(char *string, int length, int switcher) { //array, length of array
-    int booleanVar = 0;
+int getCorrectValue(char *string, int length, int switcher) {
+    int booleanVar = -1;
     int intResult;
-    while (1) {
+    while (booleanVar == -1) {
         scanf("%s", string);
-        for (int i = 0; i < length; i++) {
-            // проверка каждого символа, если не число, то проверка на '\0'
-            if (!(string[i] >= '0' && string[i] <= '9')) {
-                if (string[i] == '\0') {
-                    booleanVar = 1;
-                } else {
-                    printf("Incorrect input. Try again: ");
-                    booleanVar = 0;
-                }
-                break;
-            }
-        }
-        if (booleanVar == 1) {
-            break;
-        }
+        booleanVar = checkInputString4Numbers(string, length, "Incorrect input. Try again: ");
     }
     if (switcher == 1) {
         sscanf(string, "%d", &intResult);
@@ -302,24 +292,10 @@ int getCorrectValue(char *string, int length, int switcher) { //array, length of
 }
 
 void getCorrectStringValue(char *string, int length) { //array, length of array
-    int booleanVar = 0;
-    while (1) {
+    int booleanVar = -1;
+    while (booleanVar == -1) {
         scanf("%s", string);
-        for (int i = 0; i < length; i++) {
-            // проверка каждого символа, если не буква(строчная или заглавная), то проверка на '\0'
-            if (!(string[i] >= 'a' && string[i] <= 'z' || string[i] >= 'A' && string[i] <= 'Z')) {
-                if (string[i] == '\0') {
-                    booleanVar = 1;
-                } else {
-                    printf("Incorrect input. Try again: ");
-                    booleanVar = 0;
-                }
-                break;
-            }
-        }
-        if (booleanVar == 1) {
-            break;
-        }
+        booleanVar = checkInputString(string, length, "Incorrect input. Try again: ");
     }
 }
 
@@ -419,6 +395,7 @@ void getCorrectFileName(char *fileName) {
 unsigned int loadNotebook(person *notebook, char *fileName) {
     char name[15];
     char surname[20];
+    char strAge[20];
     int age;
     char gender[7];
     char telNumber[12];
@@ -426,12 +403,39 @@ unsigned int loadNotebook(person *notebook, char *fileName) {
     FILE *file = fopen(fileName, "r");
     if (file != NULL) {
         while (1) {
-            if (fscanf(file, "%s%s%d%s%s", name, surname, &age, gender, telNumber) == EOF) {
+            if (fscanf(file, "%s%s%s%s%s", name, surname, strAge, gender, telNumber) == EOF) {
                 printf("\nFile uploaded successfully.\n");
                 break;
             } else {
-                notebook[amountOfPeople] = getNewPerson(name, surname, age, gender, telNumber); //todo: check all parameters for correct value!!!
-                ++amountOfPeople;
+                if (checkInputString(name, 15, "\nIncorrect name value. Try again.\n") != 0) {
+                    break;
+                }
+                if (checkInputString(surname, 20, "\nIncorrect surname value. Try again.\n") != 0) {
+                    break;
+                }
+
+                if (checkInputString(strAge, 20, "\nIncorrect age value. Try again.\n") != 0) {
+                    break;
+                } else{
+                    if (sscanf(strAge, "%d", &age) < 1 || age > 150) {
+                        printf("\nIncorrect age value. Try again.\n");
+                        break;
+                    }
+                }
+
+                if (checkInputString(gender, 7, "\nIncorrect gender value. Try again.\n") != 0) {
+                    break;
+                }
+                if (checkInputString4Numbers(telNumber, 12, "\nIncorrect phone number value. Try again.\n") == 0) {
+                    notebook[amountOfPeople] = getNewPerson(name,
+                                                            surname,
+                                                            age,
+                                                            gender,
+                                                            telNumber);
+                    ++amountOfPeople;
+                } else {
+                    break;
+                }
             }
         }
         fclose(file);
@@ -440,6 +444,40 @@ unsigned int loadNotebook(person *notebook, char *fileName) {
         printf("\nSomething went wrong. Try again.\n");
         return -1;
     }
+}
+
+int checkInputString(const char *string, int length, char *errorMessage) {
+    int boolVar = 0;
+    for (int i = 0; i < length; i++) {
+        // проверка каждого символа, если не буква(строчная или заглавная), то проверка на '\0'
+        if (!(string[i] >= 'a' && string[i] <= 'z' || string[i] >= 'A' && string[i] <= 'Z')) {
+            if (string[i] == '\0') {
+                boolVar = 0;
+            } else {
+                printf("%s", errorMessage);
+                boolVar = -1;
+            }
+            break;
+        }
+    }
+    return boolVar;
+}
+
+int checkInputString4Numbers(const char *string, int length, char *errorMessage) {
+    int boolVar = 0;
+    for (int i = 0; i < length; i++) {
+        // проверка каждого символа, если не число, то проверка на '\0'
+        if (!(string[i] >= '0' && string[i] <= '9')) {
+            if (string[i] == '\0') {
+                boolVar = 0;
+            } else {
+                printf("%s", errorMessage);
+                boolVar = -1;
+            }
+            break;
+        }
+    }
+    return boolVar;
 }
 
 void deleteFile(char *fileName) {
