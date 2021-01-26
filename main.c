@@ -48,7 +48,7 @@ void saveNotebook(unsigned int amountOfPeople, person *notebook, char *fileName)
 
 void getCorrectFileName(char *fileName);
 
-unsigned int loadNotebook(person *notebook, char *fileName);
+unsigned int loadNotebook(person *notebook, char *fileName, int maxAmountOfPeople);
 
 int checkInputString(const char *string, int length, char *errorMessage);
 
@@ -158,7 +158,7 @@ int main() {
             case 9: {
                 char fileName[20];
                 getCorrectFileName(fileName);
-                amountOfPeople = loadNotebook(notebook, fileName);
+                amountOfPeople = loadNotebook(notebook, fileName, maxAmountOfPeople);
                 break;
             }
             case 10: {
@@ -188,19 +188,19 @@ int main() {
 }
 
 int getInputData(char *name, char *surname, int age, char *gender, char *telNumber) {
-    printf("Input name:");
+    printf("Input name (max 14 symbols):");
     getCorrectStringValue(name, 15);
 
-    printf("Input surname:");
+    printf("Input surname (max 19 symbols):");
     getCorrectStringValue(surname, 20);
 
-    printf("Input age:");
+    printf("Input age (from 0 to 150):");
     age = getCorrectIntValue(150);
 
-    printf("Input gender:");
+    printf("Input gender (max 6 symbols):");
     getCorrectStringValue(gender, 7);
 
-    printf("Input telNumber:");
+    printf("Input telNumber (max 11 symbols):");
     getCorrectValue(telNumber, 12, 0);
     return age;
 }
@@ -367,9 +367,9 @@ unsigned int removePerson(unsigned int amountOfPeople, person *notebook, int ind
 }
 
 void saveNotebook(unsigned int amountOfPeople, person *notebook, char *fileName) {
-    FILE *file = fopen(fileName, "w");
-    if (file != NULL) {
-        for (int i = 0; i < amountOfPeople; i++) {
+    FILE *file = fopen(fileName, "w");//открываем файл
+    if (file != NULL) {//если файл открылс€
+        for (int i = 0; i < amountOfPeople; i++) {//записываем информацию в файл через табул€цию
             fprintf(file, "%s\t%s\t%d\t%s\t%s\n",
                     notebook[i].name,
                     notebook[i].surname,
@@ -378,8 +378,8 @@ void saveNotebook(unsigned int amountOfPeople, person *notebook, char *fileName)
                     notebook[i].telNumber);
         }
         printf("\nNotebook was saved in %s\n", fileName);
-        fclose(file);
-    } else {
+        fclose(file);//закрываем файл
+    } else {// если файл не открылс€
         printf("\nSomething went wrong. Try again.\n");
     }
 }
@@ -392,55 +392,61 @@ void getCorrectFileName(char *fileName) {
     }
 }
 
-unsigned int loadNotebook(person *notebook, char *fileName) {
-    char name[15];
+unsigned int loadNotebook(person *notebook, char *fileName, int maxAmountOfPeople) {
+    char name[15];//переменые куда будут записыватьс€ данные из файла
     char surname[20];
     char strAge[20];
     int age;
     char gender[7];
     char telNumber[12];
     unsigned int amountOfPeople = 0;
-    FILE *file = fopen(fileName, "r");
-    if (file != NULL) {
+    FILE *file = fopen(fileName, "r"); //открытие файла
+    if (file != NULL) {//если файл открылс€
         while (1) {
-            if (fscanf(file, "%s%s%s%s%s", name, surname, strAge, gender, telNumber) == EOF) {
+            if (fscanf(file, "%s%s%s%s%s", name, surname, strAge, gender, telNumber) == EOF || amountOfPeople == maxAmountOfPeople) {
+                //проверка на конец документа и количество людей
                 printf("\nFile uploaded successfully.\n");
                 break;
             } else {
                 if (checkInputString(name, 15, "\nIncorrect name value. Try again.\n") != 0) {
+                    //проверка имени
                     break;
                 }
                 if (checkInputString(surname, 20, "\nIncorrect surname value. Try again.\n") != 0) {
+                    //проверка фамилии
                     break;
                 }
 
-                if (checkInputString(strAge, 20, "\nIncorrect age value. Try again.\n") != 0) {
+                if (checkInputString4Numbers(strAge, 20, "\nIncorrect age value. Try again.\n") != 0) {
+                    //проверка возраста
                     break;
-                } else{
+                } else {
                     if (sscanf(strAge, "%d", &age) < 1 || age > 150) {
-                        printf("\nIncorrect age value. Try again.\n");
+                        printf("\nAge out of range. Try again.\n");
                         break;
                     }
                 }
 
                 if (checkInputString(gender, 7, "\nIncorrect gender value. Try again.\n") != 0) {
+                    //проверка пола
                     break;
                 }
-                if (checkInputString4Numbers(telNumber, 12, "\nIncorrect phone number value. Try again.\n") == 0) {
+                if (checkInputString4Numbers(telNumber, 12, "\nIncorrect phone number value. Try again.\n") == 0 &&
+                    amountOfPeople < maxAmountOfPeople) {//проверка номера телефона и количества записей в документе
                     notebook[amountOfPeople] = getNewPerson(name,
                                                             surname,
                                                             age,
                                                             gender,
-                                                            telNumber);
-                    ++amountOfPeople;
+                                                            telNumber);//запись данных в массив структур
+                    ++amountOfPeople;//инкремент количества записей
                 } else {
                     break;
                 }
             }
         }
-        fclose(file);
-        return amountOfPeople;
-    } else {
+        fclose(file);//закрытие файла
+        return amountOfPeople;//возвращаем количество элементов в массиве структур
+    } else {//если файл не открылс€
         printf("\nSomething went wrong. Try again.\n");
         return -1;
     }
@@ -489,12 +495,12 @@ void deleteFile(char *fileName) {
 }
 
 unsigned int removeAllInfo(person *notebook, unsigned int amountOfPeople) {
-    int length = (int) amountOfPeople;
+    int length = (int) amountOfPeople;//количество элементов в массиве структур
     while (length != 0) {
         for (int i = 0; i < length; i++) {
-            notebook[i] = notebook[i + 1];
+            notebook[i] = notebook[i + 1];//затираем информацию в iтом элементе
         }
-        --length;
+        --length;//уменьшаем length так как элементы сдвинулись влево на 1
     }
     printf("\nAll data were deleted successfully.\n");
     return 0;
