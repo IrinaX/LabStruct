@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 /*
@@ -16,7 +17,7 @@ typedef struct {
 
 person getNewPerson(char name[], char surname[], int age, char gender[], char telNumber[]);
 
-unsigned int getAmountOfPeople(int maxVal);
+unsigned int getAmountOfPeople();
 
 int getInputData(char *name, char *surname, int age, char *gender, char *telNumber);
 
@@ -28,7 +29,7 @@ void printMenu();
 
 int getCorrectValue(char *string, int length, int switcher);
 
-int getCorrectIntValue(int maxValue);
+int getCorrectIntValue();
 
 void getCorrectStringValue(char *string, int length);
 
@@ -40,15 +41,15 @@ void sortBySurname(unsigned int amountOfPeople, person *notebook);
 
 void showPerson(person *notebook, int number);
 
-unsigned int addNewPerson(unsigned int amountOfPeople, person *notebook);
+person *addNewPerson(unsigned int *amountOfPeople, person *notebook);
 
-unsigned int removePerson(unsigned int amountOfPeople, person *notebook, int index);
+person *removePerson(unsigned int *amountOfPeople, person *notebook, int index);
 
 void saveNotebook(unsigned int amountOfPeople, person *notebook, char *fileName);
 
 void getCorrectFileName(char *fileName);
 
-unsigned int loadNotebook(person *notebook, char *fileName, int maxAmountOfPeople);
+person *loadNotebook(person *notebook, char *fileName, unsigned int *amountOfPeople);
 
 int checkInputString(const char *string, int length, char *errorMessage);
 
@@ -56,11 +57,10 @@ int checkInputString4Numbers(const char *string, int length, char *errorMessage)
 
 void deleteFile(char *fileName);
 
-unsigned int removeAllInfo(person *notebook, unsigned int amountOfPeople);
+unsigned int removeAllInfo(person *notebook);
 
 int main() {
-    int maxAmountOfPeople = 20;
-    person notebook[maxAmountOfPeople];
+    person *notebook = NULL;
     unsigned int amountOfPeople = 0;
     int variant = 0;
     int maxVariant = 12;
@@ -69,7 +69,12 @@ int main() {
         variant = getCorrectIntValue(maxVariant);
         switch (variant) {
             case 1: { //Create new notebook
-                amountOfPeople = getAmountOfPeople(maxAmountOfPeople);
+                amountOfPeople = getAmountOfPeople();
+                notebook = malloc(amountOfPeople * sizeof(person));
+                if (NULL == notebook) {
+                    printf("Allocation error.");
+                    exit(0);
+                }
                 getPeopleData(amountOfPeople, notebook);
                 printNotebook(amountOfPeople, notebook);
                 break;
@@ -79,6 +84,8 @@ int main() {
                     sortBySurname(amountOfPeople, notebook);
                     printNotebook(amountOfPeople, notebook);
                 } else {
+                    free(notebook);
+                    notebook = NULL;
                     printf("\nNotebook is empty.\n");
                 }
                 break;
@@ -95,6 +102,8 @@ int main() {
                         printNotebook(numberOfMatches, foundPeople);
                     }
                 } else {
+                    free(notebook);
+                    notebook = NULL;
                     printf("\nNotebook is empty.\n");
                 }
                 break;
@@ -104,6 +113,8 @@ int main() {
                     printf("Notebook:\n");
                     printNotebook(amountOfPeople, notebook);
                 } else {
+                    free(notebook);
+                    notebook = NULL;
                     printf("\nNotebook is empty.\n");
                 }
                 break;
@@ -114,16 +125,14 @@ int main() {
                     int number = getCorrectIntValue((int) amountOfPeople);
                     showPerson(notebook, number);
                 } else {
+                    free(notebook);
+                    notebook = NULL;
                     printf("\nNotebook is empty.\n");
                 }
                 break;
             }
             case 6: { //Add person
-                if (amountOfPeople < maxAmountOfPeople) {
-                    amountOfPeople = addNewPerson(amountOfPeople, notebook);
-                } else {
-                    printf("\nNotebook is full.\n");
-                }
+                notebook = addNewPerson(&amountOfPeople, notebook);
                 printf("\nUpdated notebook:\n");
                 printNotebook(amountOfPeople, notebook);
                 break;
@@ -133,7 +142,7 @@ int main() {
                     printf("Enter the person's number: ");
                     int index = getCorrectIntValue((int) amountOfPeople);
                     --index;
-                    amountOfPeople = removePerson(amountOfPeople, notebook, index);
+                    notebook = removePerson(&amountOfPeople, notebook, index);
                     if (amountOfPeople > 0) {
                         printf("\nPerson was removed. Updated notebook:\n");
                         printNotebook(amountOfPeople, notebook);
@@ -141,42 +150,54 @@ int main() {
                         printf("\nNotebook is empty.\n");
                     }
                 } else {
+                    free(notebook);
+                    notebook = NULL;
                     printf("\nNotebook is empty.\n");
                 }
                 break;
             }
-            case 8: {
+            case 8: { //Save notebook
                 if (amountOfPeople > 0) {
                     char fileName[20];
                     getCorrectFileName(fileName);
                     saveNotebook(amountOfPeople, notebook, fileName);
                 } else {
+                    free(notebook);
+                    notebook = NULL;
                     printf("\nNo data to save.\n");
                 }
                 break;
             }
-            case 9: {
+            case 9: { //Load notebook from file
                 char fileName[20];
                 getCorrectFileName(fileName);
-                amountOfPeople = loadNotebook(notebook, fileName, maxAmountOfPeople);
+                notebook = loadNotebook(notebook, fileName, &amountOfPeople);
+//                if (notebook == 0) {
+//                    free(notebook); //очищаем память
+//                    notebook = NULL;
+//                }
                 break;
             }
-            case 10: {
+            case 10: { //Delete file
                 char fileName[20];
                 getCorrectFileName(fileName);
                 deleteFile(fileName);
                 break;
             }
-            case 11: {
+            case 11: { //Clear all data
                 if (amountOfPeople > 0) {
-                    amountOfPeople = removeAllInfo(notebook, amountOfPeople);
+                    amountOfPeople = removeAllInfo(notebook);
                 } else {
+                    free(notebook);
+                    notebook = NULL;
                     printf("\nNotebook is empty.\n");
                 }
                 break;
             }
-            case 12: {
+            case 12: { //Exit
                 printf("Exit...");
+                free(notebook);
+                notebook = NULL;
                 break;
             }
             default:
@@ -231,9 +252,9 @@ person getNewPerson(char *name, char *surname, int age, char *gender, char *telN
     return newPerson;
 }
 
-unsigned int getAmountOfPeople(int maxVal) {
+unsigned int getAmountOfPeople() {
     printf("Input amount of people: ");
-    unsigned int amountOfPeople = (unsigned int) getCorrectIntValue(maxVal);//max amountOfPeople = 20 (task)
+    unsigned int amountOfPeople = (unsigned int) getCorrectIntValue();
     return amountOfPeople;
 }
 
@@ -263,13 +284,13 @@ void printMenu() {
     printf(">");
 }
 
-int getCorrectIntValue(int maxValue) {
+int getCorrectIntValue() {
     int result = 0;
     char string[100];
     // пока ввод некорректен, сообщаем об этом и просим повторить его
-    while (result < 1 || result > maxValue) {
+    while (result < 1) {
         result = getCorrectValue(string, 100, 1);
-        if (result < 1 || result > maxValue) {
+        if (result < 1) {
             printf("Incorrect input. Try again: ");
         }
     }
@@ -342,28 +363,38 @@ void showPerson(person *notebook, int number) {
            notebook[number - 1].telNumber);
 }
 
-unsigned int addNewPerson(unsigned int amountOfPeople, person *notebook) {
+person *addNewPerson(unsigned int *amountOfPeople, person *notebook) {
     char name[15];
     char surname[20];
     int age = 0;
     char gender[7];
     char telNumber[12];
-    age = getInputData(name, surname, age, gender, telNumber);
-    printf("name: %s \tsurname: %s \tage: %d \tgender: %s \ttelNumber: %s\n", name,
-           surname, age, gender, telNumber);
-    notebook[amountOfPeople] = getNewPerson(name, surname, age, gender, telNumber);
-    ++amountOfPeople;
-    return amountOfPeople;
+    age = getInputData(name, surname, age, gender, telNumber); //получаем данные с консоли
+    notebook = realloc(notebook,
+                       sizeof(person) * (*amountOfPeople + 1)); //выделяем память для нового элемента массива структур
+    if (NULL == notebook) {//если ОС не выделила память, выходим из программы
+        printf("Allocation error.");
+        exit(0);
+    }
+    notebook[*amountOfPeople] = getNewPerson(name, surname, age, gender, telNumber); //записываем полученные данные
+    ++*amountOfPeople; //увеличиваем количество записей в книге на 1
+    return notebook; //возвращаем указатель на измененный массив структур
 }
 
-unsigned int removePerson(unsigned int amountOfPeople, person *notebook, int index) {
-    --amountOfPeople;
-    for (int i = 0; i < amountOfPeople; i++) {
-        if (i >= index) {
+person *removePerson(unsigned int *amountOfPeople, person *notebook, int index) {
+    --*amountOfPeople;//уменьшаем значение количества записей в книге
+    for (int i = 0; i < *amountOfPeople; i++) {
+        if (i >= index) {//затираем выбранную запись и переписываем последующие записи до конца книги
             notebook[i] = notebook[i + 1];
         }
     }
-    return amountOfPeople;
+    notebook = realloc(notebook,//выделяем память для полученного массива структур, который на 1 меньше предыдущего
+                       sizeof(person) * (*amountOfPeople));
+    if (NULL == notebook) {//если ОС не выделила память, выходим из программы
+        printf("Allocation error.");
+        exit(0);
+    }
+    return notebook;//возвращаем указатель на измененный массив структур
 }
 
 void saveNotebook(unsigned int amountOfPeople, person *notebook, char *fileName) {
@@ -388,40 +419,50 @@ void getCorrectFileName(char *fileName) {
     printf("Enter file name: ");
     scanf("%s", fileName);
     if (strstr(fileName, ".txt") == NULL) {// проверка на вхождение ".txt" в введеную строку
-        strncat(fileName, ".txt", 4); // добавляем ".txt"
+        strcat(fileName, ".txt"); // добавляем ".txt"
     }
 }
 
-unsigned int loadNotebook(person *notebook, char *fileName, int maxAmountOfPeople) {
+person *loadNotebook(person *notebook, char *fileName, unsigned int *amountOfPeople) {
     char name[15];//переменые куда будут записываться данные из файла
     char surname[20];
     char strAge[20];
     int age;
     char gender[7];
     char telNumber[12];
-    unsigned int amountOfPeople = 0;
     FILE *file = fopen(fileName, "r"); //открытие файла
     if (file != NULL) {//если файл открылся
+        free(notebook); //освобождаем память для загрузки новых данных
+        notebook = NULL; //обнуляем указатель
+        *amountOfPeople = 0; //количество записей равно 0 соответственно
         while (1) {
-            if (fscanf(file, "%s%s%s%s%s", name, surname, strAge, gender, telNumber) == EOF || amountOfPeople == maxAmountOfPeople) {
+            if (fscanf(file, "%s%s%s%s%s", name, surname, strAge, gender, telNumber) == EOF) {
                 //проверка на конец документа и количество людей
                 printf("\nFile uploaded successfully.\n");
                 break;
             } else {
                 if (checkInputString(name, 15, "\nIncorrect name value. Try again.\n") != 0) {
                     //проверка имени
+                    free(notebook);//если ошибка то освобождаем память
+                    notebook = NULL;
                     break;
                 }
                 if (checkInputString(surname, 20, "\nIncorrect surname value. Try again.\n") != 0) {
                     //проверка фамилии
+                    free(notebook);//если ошибка то освобождаем память
+                    notebook = NULL;
                     break;
                 }
 
                 if (checkInputString4Numbers(strAge, 20, "\nIncorrect age value. Try again.\n") != 0) {
                     //проверка возраста
+                    free(notebook);//если ошибка то освобождаем память
+                    notebook = NULL;
                     break;
                 } else {
                     if (sscanf(strAge, "%d", &age) < 1 || age > 150) {
+                        free(notebook);//если ошибка то освобождаем память
+                        notebook = NULL;
                         printf("\nAge out of range. Try again.\n");
                         break;
                     }
@@ -429,27 +470,37 @@ unsigned int loadNotebook(person *notebook, char *fileName, int maxAmountOfPeopl
 
                 if (checkInputString(gender, 7, "\nIncorrect gender value. Try again.\n") != 0) {
                     //проверка пола
+                    free(notebook);//если ошибка то освобождаем память
+                    notebook = NULL;
                     break;
                 }
-                if (checkInputString4Numbers(telNumber, 12, "\nIncorrect phone number value. Try again.\n") == 0 &&
-                    amountOfPeople < maxAmountOfPeople) {//проверка номера телефона и количества записей в документе
-                    notebook[amountOfPeople] = getNewPerson(name,
-                                                            surname,
-                                                            age,
-                                                            gender,
-                                                            telNumber);//запись данных в массив структур
-                    ++amountOfPeople;//инкремент количества записей
+                if (checkInputString4Numbers(telNumber, 12, "\nIncorrect phone number value. Try again.\n") == 0) {
+                    //проверка номера телефона
+                    notebook = realloc(notebook,
+                                       sizeof(person) * (*amountOfPeople +
+                                                         1));//если ошибки нет, выделяем память для нового элемента массива структур
+                    if (NULL == notebook) {
+                        printf("Allocation error.");
+                        exit(0);
+                    }
+                    notebook[*amountOfPeople] = getNewPerson(name,
+                                                             surname,
+                                                             age,
+                                                             gender,
+                                                             telNumber);//запись данных в массив структур
+                    ++*amountOfPeople;//инкремент количества записей
                 } else {
+                    free(notebook);//если ошибка то освобождаем память
+                    notebook = NULL;
                     break;
                 }
             }
         }
         fclose(file);//закрытие файла
-        return amountOfPeople;//возвращаем количество элементов в массиве структур
     } else {//если файл не открылся
-        printf("\nSomething went wrong. Try again.\n");
-        return -1;
+        printf("\nSomething went wrong. Try again. Probably, file doesn't exist.\n");
     }
+    return notebook; //возвращаем адрес на первый элемент массива в памяти
 }
 
 int checkInputString(const char *string, int length, char *errorMessage) {
@@ -494,14 +545,9 @@ void deleteFile(char *fileName) {
     }
 }
 
-unsigned int removeAllInfo(person *notebook, unsigned int amountOfPeople) {
-    int length = (int) amountOfPeople;//количество элементов в массиве структур
-    while (length != 0) {
-        for (int i = 0; i < length; i++) {
-            notebook[i] = notebook[i + 1];//затираем информацию в iтом элементе
-        }
-        --length;//уменьшаем length так как элементы сдвинулись влево на 1
-    }
+unsigned int removeAllInfo(person *notebook) {
+    free(notebook);
+    notebook = NULL;
     printf("\nAll data were deleted successfully.\n");
     return 0;
 }
