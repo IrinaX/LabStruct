@@ -172,10 +172,6 @@ int main() {
                 char fileName[20];
                 getCorrectFileName(fileName);
                 notebook = loadNotebook(notebook, fileName, &amountOfPeople);
-//                if (notebook == 0) {
-//                    free(notebook); //очищаем память
-//                    notebook = NULL;
-//                }
                 break;
             }
             case 10: { //Delete file
